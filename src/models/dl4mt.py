@@ -213,7 +213,7 @@ class Generator(nn.Module):
 class DL4MT(NMTModel):
 
     def __init__(self, n_src_vocab, n_tgt_vocab, d_word_vec, d_model, dropout,
-                 proj_share_weight, bridge_type="mlp", **kwargs):
+                 tie_input_output_embedding=True, bridge_type="mlp", tie_source_target_embedding=False, **kwargs):
 
         super().__init__()
 
@@ -222,7 +222,12 @@ class DL4MT(NMTModel):
         self.decoder = Decoder(n_words=n_tgt_vocab, input_size=d_word_vec, hidden_size=d_model,
                                dropout_rate=dropout, bridge_type=bridge_type)
 
-        if proj_share_weight is False:
+        if tie_source_target_embedding:
+            assert n_src_vocab == n_tgt_vocab, \
+                "source and target vocabulary should have equal size when tying source&target embedding"
+            self.encoder.embedding.embeddings.weight = self.decoder.embedding.embeddings.weight
+
+        if tie_input_output_embedding is False:
             generator = Generator(n_words=n_tgt_vocab, hidden_size=d_word_vec, padding_idx=PAD)
         else:
             generator = Generator(n_words=n_tgt_vocab, hidden_size=d_word_vec, padding_idx=PAD,
