@@ -46,10 +46,10 @@ def beam_search(nmt_model, beam_size, max_steps, src_seqs, alpha=-1.0):
     init_dec_states = nmt_model.init_decoder(enc_outputs, expand_size=beam_size)
 
     # Prepare for beam searching
-    beam_mask = src_seqs.new(batch_size, beam_size).fill_(1).float()
-    final_lengths = src_seqs.new(batch_size, beam_size).zero_().float()
-    beam_scores = src_seqs.new(batch_size, beam_size).zero_().float()
-    final_word_indices = src_seqs.new(batch_size, beam_size, 1).fill_(BOS)
+    beam_mask = src_seqs.new(batch_size, beam_size).fill_(1).float()#1 means not closed,0 means find eos
+    final_lengths = src_seqs.new(batch_size, beam_size).zero_().float()# lengths of each hyp
+    beam_scores = src_seqs.new(batch_size, beam_size).zero_().float()#score for each hyp 
+    final_word_indices = src_seqs.new(batch_size, beam_size, 1).fill_(BOS)#the last word of each hyp
 
     dec_states = init_dec_states
 
@@ -59,8 +59,9 @@ def beam_search(nmt_model, beam_size, max_steps, src_seqs, alpha=-1.0):
 
         next_scores = - next_scores  # convert to negative log_probs
         next_scores = next_scores.view(batch_size, beam_size, -1)
-        next_scores = mask_scores(scores=next_scores, beam_mask=beam_mask)
-
+        next_scores = mask_scores(scores=next_scores, beam_mask=beam_mask) #next_scores (batch_size,beam_size,n_words)
+#if the hyp is masked then it can only output eos, other words scores are set to inf(topk smallest at last)
+        
         beam_scores = next_scores + beam_scores.unsqueeze(2)  # [B, Bm, N] + [B, Bm, 1] ==> [B, Bm, N]
 
         vocab_size = beam_scores.size(-1)
@@ -80,6 +81,7 @@ def beam_search(nmt_model, beam_size, max_steps, src_seqs, alpha=-1.0):
         # Get topK with beams
         # indices: [batch_size, ]
         _, indices = torch.topk(normed_scores, k=beam_size, dim=-1, largest=False, sorted=False)
+        #top_beam_size for each hyp
         next_beam_ids = torch.div(indices, vocab_size)  # [batch_size, ]
         next_word_ids = indices % vocab_size  # [batch_size, ]
 
