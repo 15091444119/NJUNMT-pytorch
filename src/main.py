@@ -22,6 +22,7 @@ from src.utils.common_utils import *
 from src.utils.configs import default_configs, pretty_configs
 from src.utils.logging import *
 from src.utils.moving_average import MovingAverage
+from src.utils.embedding_utils import get_embeddings
 
 BOS = Vocabulary.BOS
 EOS = Vocabulary.EOS
@@ -445,6 +446,11 @@ def train(FLAGS):
 
     # 3. Load pretrained model if needed
     load_pretrained_model(nmt_model, FLAGS.pretrain_path, exclude_prefix=None, device=CURRENT_DEVICE)
+
+    # get and write embeddings
+    if FLAGS.output_embeddings_path != "":
+        get_embeddings(nmt_model, vocab_src, vocab_tgt, path_prefix=FLAGS.output_embeddings_path)
+        exit()
 
     # 4. Build optimizer
     INFO('Building Optimizer...')

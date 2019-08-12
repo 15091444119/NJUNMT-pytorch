@@ -30,6 +30,8 @@ parser.add_argument('--pretrain_path', type=str, default="", help="The path for 
 parser.add_argument("--valid_path", type=str, default="./valid",
                     help="""Path to save translation for bleu evaulation. Default is ./valid.""")
 
+parser.add_argument('--output_embeddings_path', type=str, default="", help="The path to output word embeddings")
+
 
 def run(**kwargs):
     args = parser.parse_args()

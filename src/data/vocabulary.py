@@ -86,6 +86,7 @@ class Vocabulary(object):
 
         return self.tokenizer.detokenize(tokens)
 
+
 PAD = Vocabulary.PAD
 EOS = Vocabulary.EOS
 BOS = Vocabulary.BOS
